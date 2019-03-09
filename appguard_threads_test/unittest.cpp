@@ -5,6 +5,8 @@ using namespace amichel;
 
 const session_context test1 = {"test1", 100000, 9, 20, 20, 20, 1000};
 const session_context test2 = {"test2", 1000000, 9, 20, 20, 20, 0};
+const session_context test3 = {"test3", 1000000, 9, 100, 2, 20, 0};
+const session_context test4 = {"test4", 1000000, 9, 2, 100, 20, 0};
 
 namespace appguard_threads_test {
 
@@ -38,6 +40,16 @@ public :
 
   TEST_METHOD(Test2) {
     run(test2);
+    amichel::log("all runs completed successfully");
+  }
+
+  TEST_METHOD(Test3) {
+    run(test3);
+    amichel::log("all runs completed successfully");
+  }
+
+    TEST_METHOD(Test4) {
+    run(test4);
     amichel::log("all runs completed successfully");
   }
 };
