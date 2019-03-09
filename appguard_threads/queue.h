@@ -3,6 +3,8 @@
 #include "random.h"
 
 namespace amichel {
+using lock_guard = std::lock_guard<std::mutex>;
+using unique_lock = std::unique_lock<std::mutex>;
 
 /**
 thread safe queue class used to communicate data between generator and
@@ -16,9 +18,11 @@ calling threads to stop work
 class queue {
 private:
   // mutex used to synchronize generators and counters
-  mutable std::mutex qm;
+  mutable std::mutex q_m;
   // mutex used to serialize access to queue between different threads
-  mutable std::mutex x;
+  mutable std::mutex sync_m;
+
+  mutable std::mutex ct_m;
   // condition variable used to synchronize generators and counters
   std::condition_variable empty;
 
@@ -37,6 +41,16 @@ private:
   // max number of items after which the entire processing stops
   int mc;
 
+  bool _done = false;
+
+private:
+  void update_stats(int t) {
+    lock_guard lk(ct_m);
+    if (++ct >= mc)
+      _done = true;
+    sum += t;
+  }
+
 public:
   /**
   max_delay_microsec parameter is the upper bound of the random delays
@@ -52,19 +66,21 @@ public:
       std::this_thread::sleep_for(std::chrono::microseconds(rnd.generate()));
 
     // serializes access to queue operations
-    std::lock_guard<std::mutex> lock(qm);
+    lock_guard lock(q_m);
 
     if (!done()) {
       {
-        std::lock_guard<std::mutex> lck(x);
-        q.push(t);
-        ++ct;
-        sum += t;
-        // this just display dots in the console to show progress, one dot per
-        // 500 values
-        if (ct % 500 == 0)
-          std::cout << ".";
+        {
+          lock_guard lck(sync_m);
+          q.push(t);
+          // this just display dots in the console to show progress, one dot per
+          // 500 values
+          if (ct % 500 == 0)
+            std::cout << ".";
+        }
+        update_stats(t);
       }
+
       //    amichel::log("push - ", "count: ", ct, " size: ", q.size(), ", t: ",
       //    t); amichel::log("notify one");
 
@@ -73,7 +89,7 @@ public:
       empty.notify_one();
       return true;
     } else {
-      std::lock_guard<std::mutex> lck(x);
+      lock_guard lck(sync_m);
       // this is called when the queue has reached the maximum total number of
       // elements which means that processing is done
       // wakes all waiting threads to be sure they exit upon completion
@@ -98,7 +114,7 @@ public:
       std::this_thread::sleep_for(std::chrono::microseconds(rnd.generate()));
 
     {
-      std::unique_lock<std::mutex> lk(x);
+      unique_lock lk(sync_m);
       if (!done()) {
         // if not done wait for a data element to become available
 
@@ -109,7 +125,7 @@ public:
     }
 
     // serializing underlying queue access
-    std::lock_guard<std::mutex> lock(qm);
+    lock_guard lock(q_m);
 
     // popping the data from the front of the queue
     if (!q.empty()) {
@@ -127,8 +143,11 @@ public:
     }
   }
 
-  operator bool() const { return ct < mc; }
-  bool done() const { return ct >= mc; }
+  operator bool() const { return done(); }
+  bool done() const {
+    lock_guard lk(ct_m);
+    return _done;
+  }
 
   // sends queue info to log
   void log() const {
@@ -141,8 +160,14 @@ public:
     amichel::log();
   }
 
-  int count() const { return ct; }
-  int total() const { return sum; }
+  int count() const {
+    lock_guard lk(ct_m);
+    return ct;
+  }
+  int total() const {
+    lock_guard lk(ct_m);
+    return sum;
+  }
 };
 
 } // namespace amichel
