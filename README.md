@@ -37,7 +37,7 @@ There are four unit tests (or rather integration test) that each run one session
 3. same as 2, just number of generator and counter threads is set to 100 and 2 respectively
 4. same as 2, just number of generator and counter threads is set to 2 and 100 respectively
 
-Tests 3. and 4. are intended to test a high disparity between the number of generator and counter threads.
+Tests 3. and 4. are intended to test the case where there is a high disparity between the number of generator and counter threads.
 
 The test success/failure is determined by:
 * obviously not getting any crashes or exceptions, 
