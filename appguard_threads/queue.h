@@ -65,19 +65,22 @@ public:
         if (ct % 500 == 0)
           std::cout << ".";
       }
-      //      log("push - ", "count: ", ct, " size: ", q.size(), ", t: ", t);
-      //	  log("notify one");
+      //    amichel::log("push - ", "count: ", ct, " size: ", q.size(), ", t: ",
+      //    t); amichel::log("notify one");
 
       // new data has been pushed to queue, so wakes one thread waiting for new
       // data
       empty.notify_one();
       return true;
     } else {
+      std::lock_guard<std::mutex> lck(x);
       // this is called when the queue has reached the maximum total number of
       // elements which means that processing is done
       // wakes all waiting threads to be sure they exit upon completion
-      //		log("notify all");
+      //      amichel::log("notify all");
       empty.notify_all();
+      /*     std::this_thread::sleep_for(std::chrono::microseconds(1000));
+           empty.notify_all();*/
       return false;
     }
   }
@@ -94,13 +97,15 @@ public:
     if (mdm > 0)
       std::this_thread::sleep_for(std::chrono::microseconds(rnd.generate()));
 
-    if (!done()) {
-      // if not done wait for a data element to become available
+    {
       std::unique_lock<std::mutex> lk(x);
+      if (!done()) {
+        // if not done wait for a data element to become available
 
-      // log("pop waiting");
-      empty.wait(lk);
-      //  log("pop resuming");
+        //      amichel::log("pop waiting");
+        empty.wait(lk);
+        //      amichel::log("pop resuming");
+      }
     }
 
     // serializing underlying queue access
@@ -110,11 +115,11 @@ public:
     if (!q.empty()) {
       int n = q.front();
       q.pop();
-      //      log("pop - ", "count: ", ct, " size: ", q.size());
+      //      amichel::log("pop - ", "count: ", ct, " size: ", q.size());
       // return the data for processing
       return n;
     } else {
-      //     amichel::log("job done");
+      //      amichel::log("job done");
       // can only get here if it was woken with the queue empty,
       // which means it's time to exit, so signal by returning an
       // invalid value optional
