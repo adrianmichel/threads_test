@@ -29,11 +29,15 @@ Additionally it contains the following utility classes:
 The **main** function runs the *normal* context (as defined in the requirements document) sessions.
 
 ## Testing
-There is a reasonable amount of logging, although some of it is currently commented out in the code currently to avoid polluting the logs as they generate a large amount of ouptut.
+There is a reasonable amount of logging, although some of it is currently commented out in the code to avoid polluting the logs as they generate a large amount of ouptut.
 
 There are four unit tests (or rather integration test) that each run one session repeatedly:
-1. runs 20 sessions generating 1,000,000 values each, with 20 threads for both generators and counters, with no thread delays.
-2. runs 20 sessions generating 100,000 values each, with 20 threads for both generators and counters, and random delays between 0 and 1000 microseconds in all threads.
+1. runs 20 sessions generating 100,000 values each, with 20 threads for both generators and counters, and random delays between 0 and 1000 microseconds in all threads.
+2. runs 20 sessions generating 1,000,000 values each, with 20 threads for both generators and counters, with no thread delays.
+3. same as 2, just number of generator and counter threads is set to 100 and 2 respectively
+4. same as 2, just number of generator and counter threads is set to 2 and 100 respectively
+
+Tests 3. and 4. are intended to test the case where there is a high disparity between the number of generator and counter threads.
 
 The test success/failure is determined by:
 * obviously not getting any crashes or exceptions, 
