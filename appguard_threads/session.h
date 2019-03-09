@@ -74,7 +74,8 @@ public:
     bool check2 = q.total() == s.total();
 
     if (!check1) {
-      amichel::log("element count is inconsistent");
+      amichel::log("element count is inconsistent - expected: ", ctx.n,
+                   ", queue: ", q.count(), ", stats: ", s.count());
       return false;
     } else if (!check2) {
       amichel::log("total value of all elements is inconsistent");
