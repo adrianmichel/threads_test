@@ -31,13 +31,16 @@ The **main** function runs the *normal* context (as defined in the requirements 
 ## Testing
 There is a reasonable amount of logging, although some of it is currently commented out in the code to avoid polluting the logs as they generate a large amount of ouptut.
 
-There are four unit tests (or rather integration test) that each run one session repeatedly:
+There are several tests that each run one session repeatedly:
 1. runs 20 sessions generating 100,000 values each, with 20 threads for both generators and counters, and random delays between 0 and 1000 microseconds in all threads.
 2. runs 20 sessions generating 1,000,000 values each, with 20 threads for both generators and counters, with no thread delays.
-3. same as 2, just number of generator and counter threads is set to 100 and 2 respectively
-4. same as 2, just number of generator and counter threads is set to 2 and 100 respectively
+3. similar to 2. with number of generator and counter threads 100 and 2 respectively
+4. similar to 2. with number of generator and counter threads 2 and 100 respectively
+5. similar to 3., with 100k elements and random delay up to 10 microseconds
+6. similar to 4., with 100k elements and random delay up to 10 microseconds
 
 Tests 3. and 4. are intended to test the case where there is a high disparity between the number of generator and counter threads.
+Similar for 5. and 6. with addition of delays which can stress the synchronization between threads
 
 The test success/failure is determined by:
 * obviously not getting any crashes or exceptions, 
